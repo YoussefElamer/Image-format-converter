@@ -1,77 +1,90 @@
 const fileInput = document.getElementById('fileInput');
 const fileList = document.getElementById('fileList');
 const formatSelect = document.getElementById('formatSelect');
-const dropZone = document.getElementById('dropZone');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+const loader = document.getElementById('loader');
 
-// التعامل مع اختيار الملفات
 fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-// دعم خاصية السحب والإفلات (Drag & Drop)
-dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.style.background = "rgba(56, 189, 248, 0.2)";
-});
+async function handleFiles(files) {
+    if (files.length === 0) return;
+    
+    fileList.innerHTML = '';
+    loader.style.display = 'block'; // تشغيل السبينر
+    downloadAllBtn.style.display = files.length > 1 ? 'block' : 'none';
 
-dropZone.addEventListener('dragleave', () => {
-    dropZone.style.background = "transparent";
-});
-
-dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.style.background = "transparent";
-    handleFiles(e.dataTransfer.files);
-});
-
-function handleFiles(files) {
-    fileList.innerHTML = ''; 
-    Array.from(files).forEach(file => {
-        if (!file.type.startsWith('image/')) return;
+    for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) continue;
 
         const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            renderFileItem(file, event.target.result);
-        };
-    });
+        await new Promise(resolve => {
+            reader.onload = (e) => {
+                renderCard(file, e.target.result);
+                resolve();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    loader.style.display = 'none'; // إيقاف السبينر
 }
 
-function renderFileItem(file, src) {
+function renderCard(file, src) {
     const div = document.createElement('div');
-    div.className = 'file-item';
+    div.className = 'file-card';
     div.innerHTML = `
-        <img src="${src}"/>
-        <div class="name">${file.name}</div>
-        <button class="btn-download">تحويل وتحميل</button>
+        <img src="${src}" alt="Preview">
+        <div style="font-size: 11px; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</div>
+        <button class="btn-download">تحميل</button>
     `;
-    
-    // إضافة الحدث للزر يدوياً لتجنب مشاكل النطاق
-    div.querySelector('.btn-download').onclick = () => convertAndDownload(src, file.name);
-    
+    div.querySelector('button').onclick = () => convertAndDownload(src, file.name);
     fileList.appendChild(div);
 }
 
-function convertAndDownload(src, originalName) {
+async function convertAndDownload(src, originalName) {
     const targetFormat = formatSelect.value;
-    const extension = targetFormat.split('/')[1];
+    const ext = targetFormat.split('/')[1];
+    
     const img = new Image();
     img.src = src;
-    
-    img.onload = () => {
+    await img.decode();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    const dataUrl = canvas.toDataURL(targetFormat, 0.9);
+    const link = document.createElement('a');
+    link.download = originalName.split('.')[0] + '.' + ext;
+    link.href = dataUrl;
+    link.click();
+}
+
+// تحميل الكل ZIP
+downloadAllBtn.onclick = async () => {
+    loader.style.display = 'block';
+    const zip = new JSZip();
+    const targetFormat = formatSelect.value;
+    const ext = targetFormat.split('/')[1];
+    const images = document.querySelectorAll('.file-card img');
+
+    for (let i = 0; i < images.length; i++) {
+        const img = images[i];
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
         const ctx = canvas.getContext('2d');
-        
-        // رسم الصورة على الكانفاس
         ctx.drawImage(img, 0, 0);
         
-        // التحويل للجودة والصيغة المطلوبة
-        const dataUrl = canvas.toDataURL(targetFormat, 0.9); 
-        
-        // عملية التحميل التلقائي
-        const link = document.createElement('a');
-        link.download = originalName.substring(0, originalName.lastIndexOf('.')) + '.' + extension;
-        link.href = dataUrl;
-        link.click();
-    };
-}
+        const blob = await new Promise(res => canvas.toBlob(res, targetFormat, 0.9));
+        zip.file(`image-${i+1}.${ext}`, blob);
+    }
+
+    const content = await zip.generateAsync({type: "blob"});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = "YoussefTools-Converted-Images.zip";
+    link.click();
+    loader.style.display = 'none';
+};
