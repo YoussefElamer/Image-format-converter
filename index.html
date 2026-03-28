@@ -3,37 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محول صيغ الصور الذكي | يوسف محمد</title>
+    <title>Image Converter Pro | يوسف محمد</title>
+    <meta name="description" content="أداة احترافية لتحويل صيغ الصور وتقليص حجمها بسرعة فائقة وخصوصية تامة.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="converter-container">
+    <div class="glass-container">
         <header>
-            <h2>محول صيغ الصور الذكي 🖼️</h2>
-            <p>حول صورك إلى (PNG, JPG, WebP) بسرعة البرق وبخصوصية تامة.</p>
+            <div class="logo">🖼️</div>
+            <h1>مُحول الصور الذكي</h1>
+            <p>سرعة، خصوصية، وبدون فقدان للجودة</p>
         </header>
 
-        <div class="upload-box" id="dropZone">
+        <div class="upload-area" id="dropZone">
             <input type="file" id="fileInput" accept="image/*" multiple>
-            <label for="fileInput">
-                <strong>اختر الصور</strong> أو اسحبها هنا
-            </label>
+            <div class="upload-icon">📤</div>
+            <p>اسحب الصور هنا أو <span>تصفح ملفاتك</span></p>
         </div>
 
-        <div class="controls-row">
-            <label for="formatSelect">تحويل إلى:</label>
-            <select id="formatSelect">
-                <option value="image/webp">WebP (الأفضل للمواقع)</option>
-                <option value="image/png">PNG (خلفية شفافة)</option>
-                <option value="image/jpeg">JPG (حجم صغير)</option>
-            </select>
-        </div>
-
-        <div class="file-list" id="fileList">
+        <div class="settings-bar">
+            <div class="input-group">
+                <label>الصيغة:</label>
+                <select id="formatSelect">
+                    <option value="image/webp">WebP</option>
+                    <option value="image/png">PNG</option>
+                    <option value="image/jpeg">JPG</option>
+                </select>
             </div>
+            <button id="downloadAllBtn" class="btn-bulk" style="display: none;">تحميل الكل (ZIP)</button>
+        </div>
+
+        <div id="loader" class="loader-container" style="display: none;">
+            <div class="spinner"></div>
+            <p>جاري المعالجة...</p>
+        </div>
+
+        <div class="file-grid" id="fileList"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
