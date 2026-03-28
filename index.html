@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محول صيغ الصور الذكي | يوسف محمد</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="converter-container">
+        <header>
+            <h2>محول صيغ الصور الذكي 🖼️</h2>
+            <p>حول صورك إلى (PNG, JPG, WebP) بسرعة البرق وبخصوصية تامة.</p>
+        </header>
+
+        <div class="upload-box" id="dropZone">
+            <input type="file" id="fileInput" accept="image/*" multiple>
+            <label for="fileInput">
+                <strong>اختر الصور</strong> أو اسحبها هنا
+            </label>
+        </div>
+
+        <div class="controls-row">
+            <label for="formatSelect">تحويل إلى:</label>
+            <select id="formatSelect">
+                <option value="image/webp">WebP (الأفضل للمواقع)</option>
+                <option value="image/png">PNG (خلفية شفافة)</option>
+                <option value="image/jpeg">JPG (حجم صغير)</option>
+            </select>
+        </div>
+
+        <div class="file-list" id="fileList">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
