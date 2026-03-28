@@ -1,90 +1,56 @@
-const fileInput = document.getElementById('fileInput');
-const fileList = document.getElementById('fileList');
-const formatSelect = document.getElementById('formatSelect');
-const downloadAllBtn = document.getElementById('downloadAllBtn');
-const loader = document.getElementById('loader');
+function validateFile(file) {
+    const maxFileSize = 50 * 1024 * 1024; // 50MB
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
 
-fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-async function handleFiles(files) {
-    if (files.length === 0) return;
-    
-    fileList.innerHTML = '';
-    loader.style.display = 'block'; // تشغيل السبينر
-    downloadAllBtn.style.display = files.length > 1 ? 'block' : 'none';
-
-    for (const file of Array.from(files)) {
-        if (!file.type.startsWith('image/')) continue;
-
-        const reader = new FileReader();
-        await new Promise(resolve => {
-            reader.onload = (e) => {
-                renderCard(file, e.target.result);
-                resolve();
-            };
-            reader.readAsDataURL(file);
-        });
+    if (file.size > maxFileSize) {
+        showMessage('File size exceeds 50MB limit.');
+        return false;
     }
-    loader.style.display = 'none'; // إيقاف السبينر
-}
-
-function renderCard(file, src) {
-    const div = document.createElement('div');
-    div.className = 'file-card';
-    div.innerHTML = `
-        <img src="${src}" alt="Preview">
-        <div style="font-size: 11px; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</div>
-        <button class="btn-download">تحميل</button>
-    `;
-    div.querySelector('button').onclick = () => convertAndDownload(src, file.name);
-    fileList.appendChild(div);
-}
-
-async function convertAndDownload(src, originalName) {
-    const targetFormat = formatSelect.value;
-    const ext = targetFormat.split('/')[1];
-    
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-
-    const dataUrl = canvas.toDataURL(targetFormat, 0.9);
-    const link = document.createElement('a');
-    link.download = originalName.split('.')[0] + '.' + ext;
-    link.href = dataUrl;
-    link.click();
-}
-
-// تحميل الكل ZIP
-downloadAllBtn.onclick = async () => {
-    loader.style.display = 'block';
-    const zip = new JSZip();
-    const targetFormat = formatSelect.value;
-    const ext = targetFormat.split('/')[1];
-    const images = document.querySelectorAll('.file-card img');
-
-    for (let i = 0; i < images.length; i++) {
-        const img = images[i];
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        
-        const blob = await new Promise(res => canvas.toBlob(res, targetFormat, 0.9));
-        zip.file(`image-${i+1}.${ext}`, blob);
+    if (!validTypes.includes(file.type)) {
+        showMessage('Invalid file type. Please upload JPEG, PNG, WebP, GIF, or BMP.');
+        return false;
     }
+    return true;
+}
 
-    const content = await zip.generateAsync({type: "blob"});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(content);
-    link.download = "YoussefTools-Converted-Images.zip";
-    link.click();
-    loader.style.display = 'none';
-};
+function showMessage(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+function formatFileSize(bytes) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+}
+
+function dragOverHandler(event) {
+    event.preventDefault();
+    // Add visual feedback for drag-over state
+    event.dataTransfer.dropEffect = 'copy';
+}
+
+function convertAndDownload(file) {
+    try {
+        // Implement conversion logic
+        // ...
+        // Example: Using toBlob() instead of toDataURL for better memory management
+        let url = URL.createObjectURL(file);
+        // Cleanup using revokeObjectURL
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        showMessage('Error during conversion: ' + error.message);
+    }
+}
+
+function downloadAllAsZip(files) {
+    // Improve with progress tracking
+    let progress = 0;
+    // ... download logic with error handling
+}
